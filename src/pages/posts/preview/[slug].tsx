@@ -1,4 +1,4 @@
-import { GetStaticProps } from "next";
+import { GetStaticPaths, GetStaticProps } from "next";
 
 import { createClient } from "../../../services/prismicio";
 import * as prismicH from "@prismicio/helpers";
@@ -55,10 +55,23 @@ export default function PostPreview({ post }: PostPreviewProps) {
   );
 }
 
-export const getStaticPaths = () => {
+/* 
+Três opções de geração de páginas estágicas
+  1. Gerar as páginas estáticas durante a build (adicionando os slugs em paths no retorno do método)
+  2. Gerar a página estática no primeiro acesso (comum)
+  3. Combinação das duas abordagens
+
+  Obs: só acontece em páginas que temos parâmetros, por exemplo [slug].tsx, quando tem []
+*/
+export const getStaticPaths: GetStaticPaths = () => {
   return {
     paths: [],
     fallback: "blocking",
+
+    // Quando uma página não é carregada de forma estática na build
+    // fallback: "blocking",  // Realiza a requisição do lado do Servidor e depois carrega a página
+    // fallback: true,        // Carrega a página sem o conteúdo e depois faz a requisição pelo lado do BROWNSER do cliente
+    // fallback: false,       // Retona 404
   };
 };
 
@@ -86,5 +99,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     props: {
       post,
     },
+    revalidate: 60 * 30, // 30 minutes
   };
 };
